@@ -10,17 +10,20 @@ def get_week_day(my_date):
     
     
 def adjustTime(x):
-	hours, min, sec = x.split(':')
-	sec = ':00'	
-	if 25 <= int(min) <= 50:
-	    min = ':30'
-	elif int(min) < 25:
-	    min = ':00'
-	elif int(min) > 50:
-	    min = ':00'
-	    h = int(hours) + 1
-	    hours = str(h)
-	return hours + min + sec
+    try:
+        hours, min, sec = x.split(':')
+        sec = ':00'
+        if 25 <= int(min) <= 50:
+            min = ':30'
+        elif int(min) < 25:
+            min = ':00'
+        elif int(min) > 50:
+            min = ':00'
+            h = int(hours) + 1
+            hours = str(h)
+        return hours + min + sec
+    except:
+        print('Wrong time format for adjusting')
 
 def ot():
     """create workers dict and their ot"""
