@@ -1,9 +1,17 @@
 # Byte-compiled / optimized / DLL files
+<<<<<<< HEAD
 __pycache__
 *.py[cod]
 *$py.class
 .idea
 __pycache__
+=======
+__pycache__/
+*.py[cod]
+*$py.class
+.idea
+__pycache__
+>>>>>>> 5f57e243758aeded5701fa13d48e1fd2eeb7d069
 # C extensions
 *.so
 
@@ -99,4 +107,8 @@ ENV/
 /site
 
 # mypy
+<<<<<<< HEAD
 .mypy_cache/
+=======
+.mypy_cache/
+>>>>>>> 5f57e243758aeded5701fa13d48e1fd2eeb7d069
