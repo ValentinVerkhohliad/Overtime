@@ -1,3 +1,4 @@
+#python3.5
 import win32com.client
 import time
 import datetime
@@ -14,9 +15,11 @@ sales_list = ['70683', '70682', '70616', '70611', '70607', '70680', '70689', '70
               '70601', '70644', '70604', '70651', '70664', '70622', '70665', '70695', '70659', '70686', '70626',
               '70609',
               '70645', '70681', '70623', '70696', '70615', '70613', '70638']
-cs_dict = {'Abdel':'70692', 'Andre':'70625', 'Andreas':'70697', 'Bettina':'70684', 'Christine':'70612', 'Dolores':'70675', 'Fabian':'70677','Guilia':'70672',
-            'Jana':'70654', 'Karel':'70694', 'Leoni':'70655', 'Linda':'70653', 'Manuela':'70602', 'Marcel':'70646', 'Markus':'70656', 'Mathilde':'70669',
-            'Mats':'70627', 'Mia':'70621', 'Nathalie':'70671', 'Oliver':'70676', 'Otto':'70652', 'Silvia':'70605', 'Tony':'70674'}
+cs_dict = {'Abdel': '70692', 'Andre': '70625', 'Andreas': '70697', 'Bettina': '70684', 'Christine': '70612',
+           'Dolores': '70675', 'Fabian': '70677', 'Guilia': '70672', 'Jana': '70654', 'Karel': '70694', 'Leoni': '70655',
+           'Linda': '70653', 'Manuela': '70602', 'Marcel': '70646', 'Markus': '70656', 'Mathilde': '70669',
+           'Mats': '70627', 'Mia': '70621', 'Nathalie': '70671', 'Oliver': '70676', 'Otto': '70652', 'Silvia': '70605',
+           'Tony': '70674'}
 C = 3
 D = 4
 
@@ -53,6 +56,16 @@ def calculate_ot():
     day = get_week_day(my_date)
     i = 2
     val = sheet.Cells(i, 1).value
+    six_pm = '18:00:00'
+    six_thirty = '18:30:00'
+    nine_am = '9:00:00'
+    mot = '10:00:00'
+    low_threshold = '9:32:00'
+    nine_am = datetime.datetime.strptime(nine_am, '%H:%M:%S')
+    mot = datetime.datetime.strptime(mot, '%H:%M:%S')
+    six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
+    six_thirty = datetime.datetime.strptime(six_thirty, '%H:%M:%S')
+    low_threshold = datetime.datetime.strptime(low_threshold, '%H:%M:%S')
     while val:
         val = sheet.Cells(i, 1).value
         if val in cs_list:
@@ -60,18 +73,8 @@ def calculate_ot():
             leave_time = sheet.Cells(i, 4).value
             ot = '00:00:00'
             eot = '00:00:00'
-            six_pm = '18:00:00'
-            six_thirty = '18:30:00'
-            nine_am = '9:00:00'
-            mot = '10:00:00'
-            low_threshold = '9:32:00'
-            nine_am = datetime.datetime.strptime(nine_am, '%H:%M:%S')
-            mot = datetime.datetime.strptime(mot, '%H:%M:%S')
-            arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')
-            six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
+            arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')            
             leave_time = datetime.datetime.strptime(leave_time, '%H:%M:%S')
-            six_thirty = datetime.datetime.strptime(six_thirty, '%H:%M:%S')
-            low_threshold = datetime.datetime.strptime(low_threshold, '%H:%M:%S')
             if day == 'Saturday':
                 sum_ot = leave_time - arrive_time
                 sheet.Cells(i, 5).value = str(sum_ot)
@@ -104,7 +107,12 @@ def calculate_late():
     day = get_week_day(my_date)
     i = 2
     luckers = []
-    val = sheet.Cells(i, 1).value    
+    val = sheet.Cells(i, 1).value
+    six_pm = '18:00:00'
+    mot = '10:00:00'
+    six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
+    mot = datetime.datetime.strptime(mot, '%H:%M:%S')
+    work_day = six_pm - mot
     if day == 'Saturday' or day =='Sunday':
         pass
     else:
@@ -122,14 +130,9 @@ def calculate_late():
                 leave_time = sheet.Cells(i, 4).value
                 arrive_time = sheet.Cells(i, 3).value
                 m_late = '0:00:00'
-                e_late = '0:00:00'
-                six_pm = '18:00:00'
-                mot = '10:00:00'
-                mot = datetime.datetime.strptime(mot, '%H:%M:%S')
-                arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')
-                six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
-                leave_time = datetime.datetime.strptime(leave_time, '%H:%M:%S')
-                work_day = six_pm - mot
+                e_late = '0:00:00'                
+                arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')                
+                leave_time = datetime.datetime.strptime(leave_time, '%H:%M:%S')              
                 working_time = leave_time - arrive_time
                 if arrive_time > mot:
                     m_late = arrive_time - mot
@@ -145,8 +148,8 @@ def calculate_late():
                     m_late = m_late.split(':')
                     e_late = str(e_late)
                     e_late = e_late.split(':')                          
-                    sum_late = datetime.timedelta(hours=int(m_late[0]), minutes=int(m_late[1]), seconds=int(m_late[2])) \
-                               + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
+                    sum_late = datetime.timedelta(hours=int(m_late[0]), minutes=int(m_late[1]), seconds=int(m_late[2]))\
+                            + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
                     if day == 'Wednesday' and val == '70621':
                         sum_late = mia
                 if str(sum_late) == '0:00:00' or sum_late > work_day or working_time > work_day:
