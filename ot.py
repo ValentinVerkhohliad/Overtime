@@ -6,6 +6,15 @@ import glob
 import os
 import calendar
 
+C = 3
+D = 4
+NINE_AM = datetime.datetime.strptime('9:00:00', '%H:%M:%S')
+MOT = datetime.datetime.strptime('10:00:00', '%H:%M:%S')
+SIX_PM = datetime.datetime.strptime('18:00:00', '%H:%M:%S')
+SIX_THIRTY = datetime.datetime.strptime('18:30:00', '%H:%M:%S')
+LOW_THRESHOLD = datetime.datetime.strptime('9:32:00', '%H:%M:%S')
+WORK_DAY = SIX_PM - MOT
+ONE_HOUR = MOT - NINE_AM
 cs_list = ['70692', '70610', '70625', '70697', '70629', '70684', '70612', '70675', '70677', '70672', '70654', '70614',
            '70694', '70650', '70655', '70678', '70653', '70602', '70646', '70656', '70669', '70627', '70621', '70671',
            '70676', '70652', '70605', '70674']
@@ -20,8 +29,6 @@ cs_dict = {'Abdel': '70692', 'Andre': '70625', 'Andreas': '70697', 'Bettina': '7
            'Linda': '70653', 'Manuela': '70602', 'Marcel': '70646', 'Markus': '70656', 'Mathilde': '70669',
            'Mats': '70627', 'Mia': '70621', 'Nathalie': '70671', 'Oliver': '70676', 'Otto': '70652', 'Silvia': '70605',
            'Tony': '70674'}
-C = 3
-D = 4
 
 
 def sort_and_format():
@@ -56,38 +63,27 @@ def calculate_ot():
     day = get_week_day(my_date)
     i = 2
     val = sheet.Cells(i, 1).value
-    six_pm = '18:00:00'
-    six_thirty = '18:30:00'
-    nine_am = '9:00:00'
-    mot = '10:00:00'
-    low_threshold = '9:32:00'
-    nine_am = datetime.datetime.strptime(nine_am, '%H:%M:%S')
-    mot = datetime.datetime.strptime(mot, '%H:%M:%S')
-    six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
-    six_thirty = datetime.datetime.strptime(six_thirty, '%H:%M:%S')
-    low_threshold = datetime.datetime.strptime(low_threshold, '%H:%M:%S')
     while val:
         val = sheet.Cells(i, 1).value
         if val in cs_list:
-            arrive_time = sheet.Cells(i, 3).value
-            leave_time = sheet.Cells(i, 4).value
             ot = '00:00:00'
             eot = '00:00:00'
-            arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')            
-            leave_time = datetime.datetime.strptime(leave_time, '%H:%M:%S')
+            arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
+            leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
             if day == 'Saturday':
                 sum_ot = leave_time - arrive_time
                 sheet.Cells(i, 5).value = str(sum_ot)
             else:
-                if nine_am > arrive_time:
-                    arrive_time = nine_am
-                if arrive_time < mot:
-                    if arrive_time < low_threshold:
-                        ot = mot - arrive_time
+                if NINE_AM > arrive_time:
+                    arrive_time = NINE_AM
+                if arrive_time < MOT:
+                    if arrive_time < LOW_THRESHOLD:
+                        ot = MOT - arrive_time
                         if val in morning_workers_list:
                             ot = '00:00:00'
-                if leave_time > six_thirty:
-                    eot = leave_time - six_pm
+                if leave_time > SIX_THIRTY:
+                    eot = leave_time - SIX_PM
+                working_time = leave_time - arrive_time
                 ot = str(ot)
                 ot = ot.split(':')
                 eot = str(eot)
@@ -97,6 +93,8 @@ def calculate_ot():
                 if str(sum_ot) == '0:00:00':
                     pass
                 else:
+                    if (working_time - WORK_DAY) > ONE_HOUR and (working_time - WORK_DAY) > sum_ot:
+                        sum_ot = working_time - WORK_DAY
                     sheet.Cells(i, 5).value = str(sum_ot)
         i += 1
 
@@ -108,12 +106,7 @@ def calculate_late():
     i = 2
     luckers = []
     val = sheet.Cells(i, 1).value
-    six_pm = '18:00:00'
-    mot = '10:00:00'
-    six_pm = datetime.datetime.strptime(six_pm, '%H:%M:%S')
-    mot = datetime.datetime.strptime(mot, '%H:%M:%S')
-    work_day = six_pm - mot
-    if day == 'Saturday' or day =='Sunday':
+    if day == 'Saturday' or day == 'Sunday':
         pass
     else:
         if day == 'Friday':
@@ -127,21 +120,19 @@ def calculate_late():
         while val:
             val = sheet.Cells(i, 1).value
             if val in cs_list:
-                leave_time = sheet.Cells(i, 4).value
-                arrive_time = sheet.Cells(i, 3).value
                 m_late = '0:00:00'
                 e_late = '0:00:00'                
-                arrive_time = datetime.datetime.strptime(arrive_time, '%H:%M:%S')                
-                leave_time = datetime.datetime.strptime(leave_time, '%H:%M:%S')              
+                arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
+                leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
                 working_time = leave_time - arrive_time
-                if arrive_time > mot:
-                    m_late = arrive_time - mot
+                if arrive_time > MOT:
+                    m_late = arrive_time - MOT
                     mia = m_late
                 if val in luckers:
                     sum_late = m_late
                 else:
-                    if leave_time < six_pm:
-                        e_late = six_pm - leave_time
+                    if leave_time < SIX_PM:
+                        e_late = SIX_PM - leave_time
                         if val in half_day_list:
                             e_late = '0:00:00'
                     m_late = str(m_late)
@@ -149,10 +140,10 @@ def calculate_late():
                     e_late = str(e_late)
                     e_late = e_late.split(':')                          
                     sum_late = datetime.timedelta(hours=int(m_late[0]), minutes=int(m_late[1]), seconds=int(m_late[2]))\
-                            + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
+                             + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
                     if day == 'Wednesday' and val == '70621':
                         sum_late = mia
-                if str(sum_late) == '0:00:00' or sum_late > work_day or working_time > work_day:
+                if str(sum_late) == '0:00:00' or sum_late > WORK_DAY or working_time >= WORK_DAY:
                     pass                
                 else:
                     sheet.Cells(i, 6).value = str(sum_late)
