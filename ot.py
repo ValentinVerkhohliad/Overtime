@@ -44,15 +44,13 @@ def get_week_day(my_date):
 
 
 def time_change(x):
-    i = 2
-    while i < 60:
+    for i in range(2, 60):
         try:
             val = sheet.Cells(i, x).value
             val = str(val)
             val = val.split()
             sheet.Cells(i, x).NumberFormat = "@"
             sheet.Cells(i, x).value = val[1][0:8]
-            i += 1
         except:
             break
 
@@ -61,9 +59,7 @@ def calculate_ot():
     global file
     my_date = datetime.datetime.strptime(file[18:28], '%d.%m.%Y')
     day = get_week_day(my_date)
-    i = 2
-    val = sheet.Cells(i, 1).value
-    while val:
+    for i in range(2, 60):
         val = sheet.Cells(i, 1).value
         if val in cs_list:
             ot = '00:00:00'
@@ -96,16 +92,13 @@ def calculate_ot():
                     if (working_time - WORK_DAY) > ONE_HOUR and (working_time - WORK_DAY) > sum_ot:
                         sum_ot = working_time - WORK_DAY
                     sheet.Cells(i, 5).value = str(sum_ot)
-        i += 1
 
 
 def calculate_late():
     global file
     my_date = datetime.datetime.strptime(file[18:28], '%d.%m.%Y')
     day = get_week_day(my_date)
-    i = 2
     luckers = []
-    val = sheet.Cells(i, 1).value
     if day == 'Saturday' or day == 'Sunday':
         pass
     else:
@@ -117,7 +110,7 @@ def calculate_late():
                     luckers.append(cs_dict[worker])
             except KeyError:
                 print('Wrong name')
-        while val:
+        for i in range(2, 60):
             val = sheet.Cells(i, 1).value
             if val in cs_list:
                 m_late = '0:00:00'
@@ -127,7 +120,6 @@ def calculate_late():
                 working_time = leave_time - arrive_time
                 if arrive_time > MOT:
                     m_late = arrive_time - MOT
-                    mia = m_late
                 if val in luckers:
                     sum_late = m_late
                 else:
@@ -141,13 +133,10 @@ def calculate_late():
                     e_late = e_late.split(':')                          
                     sum_late = datetime.timedelta(hours=int(m_late[0]), minutes=int(m_late[1]), seconds=int(m_late[2]))\
                              + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
-                    if day == 'Wednesday' and val == '70621':
-                        sum_late = mia
                 if str(sum_late) == '0:00:00' or sum_late > WORK_DAY or working_time >= WORK_DAY:
                     pass                
                 else:
                     sheet.Cells(i, 6).value = str(sum_late)
-            i += 1
 
 
 def delete_sales():
