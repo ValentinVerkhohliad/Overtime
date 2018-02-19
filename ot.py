@@ -140,12 +140,10 @@ def calculate_late():
 
 
 def delete_sales():
-    k = 60
-    while k > 1:
+    for k in reversed(range(60)):
         val = sheet.Cells(k, 1).value
         if val in sales_list:
             sheet.Rows(k).EntireRow.Delete()
-        k -= 1
 
 
 xlsx_files = glob.glob('*.xlsx')

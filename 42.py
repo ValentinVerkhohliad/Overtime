@@ -11,6 +11,7 @@ def get_week_day(my_date):
 
 
 def adjust_time(x):
+    """adjusting time"""
     try:
         hours, minutes, sec = x.split(':')
         sec = ':00'
@@ -34,7 +35,7 @@ def ot():
     """create workers dict and their ot"""
     global sheet
     sot = {}
-    for i in range(2, 25):
+    for i in range(2, 26):
         val = sheet.Cells(i, 1).value
         tot = sheet.Cells(i, 5).value
         try:
@@ -49,7 +50,7 @@ def late():
     """create workers dict and their late time"""
     global sheet
     dic = {}
-    for i in range(2, 25):
+    for i in range(2, 26):
         val = sheet.Cells(i, 1).value
         lat = sheet.Cells(i, 6).value
         dic[val] = lat
@@ -59,7 +60,7 @@ def late():
 def get_col():
     """create column dictionary"""
     col_dict = {}
-    for i in range(3, 34):
+    for i in range(3, 35):
         column_ = report.Sheets(1).Cells(1, i).value
         column_ = str(column_).split()
         column_ = column_[0].split('-')
@@ -80,12 +81,12 @@ def copy_ot():
     else:
         if date in column:
             col = column[date]
-            for i in range(2, 25):
+            for i in range(2, 26):
                 try:
                     row = report.Sheets(1).Cells(i, 1).value
                     report.Sheets(1).Cells(i, col).value = worker_list[row]
                 except KeyError:
-                    print('Somebody is absent today')
+                    pass
         print('copy ot in %s complete' % file)
         report.Save()
 
@@ -102,7 +103,7 @@ def copy_late():
         date = str(date[0].lstrip('MastersDailyLogins'))
         if date in column:
             col = column[date]
-            for i in range(32, 55):
+            for i in range(32, 56):
                 try:
                     row = report.Sheets(1).Cells(i, 1).value
                     report.Sheets(1).Cells(i, col).value = worker_list[row]
