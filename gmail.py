@@ -1,3 +1,4 @@
+#python3.5
 from __future__ import print_function
 import httplib2
 import os
@@ -20,9 +21,6 @@ except ImportError:
 SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
-
-month = input('please input download pattern, using dot before, (for example .11)  ')
-breakpoint = input('please input breakpoint, using dot before (for example .10)  ')
 
 
 def get_credentials():
@@ -79,7 +77,7 @@ def GetAttachments(service, user_id, msg_id, prefix=""):
                     with open(path, 'wb') as f:
                         f.write(file_data)
                 if breakpoint in part['filename']:
-                    exit()
+                    raise errors.HttpError
     except errors.HttpError as error:
         print('An error occurred: %s' % error)
 
@@ -90,17 +88,27 @@ gmail_service = discovery.build('gmail', 'v1', http=http)
 labels = gmail_service.users().labels().list(userId='me').execute()
 
 
-for label in labels['labels']:
-    if label['name'] == 'py-cw1':
-        py_cw1_label = label['id']
-messages = ListMessagesWithLabels(gmail_service, 'me', py_cw1_label)
-for msg in messages:
-    m_id = msg['id']
-    try:
-        GetAttachments(gmail_service, 'me', m_id)
-        print("Processed ", m_id)
-    except KeyError as e:
-        if 'parts' in str(e):
-            print("No attachment in message ", m_id)
-        else:
-            print("Something wrong in message ", m_id, e)
+def exec_():
+    global month
+    global breakpoint
+    month = '.' + input('please input month you need in xx format')
+    if int(month.lstrip('.')) == 1:
+        breakpoint = '.12'
+    elif int(month.lstrip('.')) <= 10:
+        breakpoint = '.0' + str((int(month.lstrip('.')) - 1))
+    else:
+        breakpoint = '.' + str((int(month.lstrip('.')) - 1))
+    for label in labels['labels']:
+        if label['name'] == 'py-cw1':
+            py_cw1_label = label['id']
+    messages = ListMessagesWithLabels(gmail_service, 'me', py_cw1_label)
+    for msg in messages:
+        m_id = msg['id']
+        try:
+            GetAttachments(gmail_service, 'me', m_id)
+            print("Processed ", m_id)
+        except KeyError as e:
+            if 'parts' in str(e):
+                print("No attachment in message ", m_id)
+            else:
+                print("Something wrong in message ", m_id, e)

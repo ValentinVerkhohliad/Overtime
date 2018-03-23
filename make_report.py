@@ -11,7 +11,6 @@ def get_week_day(my_date):
 
 
 def adjust_time(x):
-    """adjusting time"""
     try:
         hours, minutes, sec = x.split(':')
         sec = ':00'
@@ -35,7 +34,7 @@ def ot():
     """create workers dict and their ot"""
     global sheet
     sot = {}
-    for i in range(2, 26):
+    for i in range(2, 25):
         val = sheet.Cells(i, 1).value
         tot = sheet.Cells(i, 5).value
         try:
@@ -50,7 +49,7 @@ def late():
     """create workers dict and their late time"""
     global sheet
     dic = {}
-    for i in range(2, 26):
+    for i in range(2, 25):
         val = sheet.Cells(i, 1).value
         lat = sheet.Cells(i, 6).value
         dic[val] = lat
@@ -60,7 +59,7 @@ def late():
 def get_col():
     """create column dictionary"""
     col_dict = {}
-    for i in range(3, 35):
+    for i in range(3, 34):
         column_ = report.Sheets(1).Cells(1, i).value
         column_ = str(column_).split()
         column_ = column_[0].split('-')
@@ -81,12 +80,12 @@ def copy_ot():
     else:
         if date in column:
             col = column[date]
-            for i in range(2, 26):
+            for i in range(2, 25):
                 try:
                     row = report.Sheets(1).Cells(i, 1).value
                     report.Sheets(1).Cells(i, col).value = worker_list[row]
                 except KeyError:
-                    pass
+                    print('Somebody is absent today')
         print('copy ot in %s complete' % file)
         report.Save()
 
@@ -103,7 +102,7 @@ def copy_late():
         date = str(date[0].lstrip('MastersDailyLogins'))
         if date in column:
             col = column[date]
-            for i in range(32, 56):
+            for i in range(32, 55):
                 try:
                     row = report.Sheets(1).Cells(i, 1).value
                     report.Sheets(1).Cells(i, col).value = worker_list[row]
@@ -113,21 +112,28 @@ def copy_late():
         report.Save()
 
 
-xlsx_files = glob.glob('*.xlsx')
-if len(xlsx_files) == 0:
-    raise RuntimeError('No XLSX files to convert.')
-xlApp = win32com.client.Dispatch("Excel.Application")
-report = xlApp.Workbooks.Open('C:\\reports\\reports\\Ot.xlsx')
-column = get_col()
+def execut_():
+    global report
+    global column
+    global file
+    global sheet
+    global xlWb
+    global xlApp
+    xlsx_files = glob.glob('*.xlsx')
+    if len(xlsx_files) == 0:
+        raise RuntimeError('No XLSX files to convert.')
+    xlApp = win32com.client.Dispatch("Excel.Application")
+    report = xlApp.Workbooks.Open('C:\\reports\\reports\\Ot.xlsx')
+    column = get_col()
 
-for file in xlsx_files:
-    xlWb = xlApp.Workbooks.Open(os.path.join(os.getcwd(), file))
-    xlApp.Workbooks.Application.DisplayAlerts = False
-    sheet = xlApp.ActiveSheet
-    copy_ot()
-    copy_late()
-    xlApp.Save()
+    for file in xlsx_files:
+        xlWb = xlApp.Workbooks.Open(os.path.join(os.getcwd(), file))
+        xlApp.Workbooks.Application.DisplayAlerts = False
+        sheet = xlApp.ActiveSheet
+        copy_ot()
+        copy_late()
+        xlApp.Save()
 
-xlApp.Quit()
-time.sleep(2)
-xlApp = None
+    xlApp.Quit()
+    time.sleep(2)
+    xlApp = None

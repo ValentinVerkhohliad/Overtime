@@ -1,13 +1,12 @@
 #python3.5
-import win32com.client
 import time
 import datetime
 import glob
 import os
 import calendar
+import win32com.client
+from lists import cs_list, morning_workers_list, half_day_list, sales_list, cs_dict
 
-C = 3
-D = 4
 NINE_AM = datetime.datetime.strptime('9:00:00', '%H:%M:%S')
 MOT = datetime.datetime.strptime('10:00:00', '%H:%M:%S')
 SIX_PM = datetime.datetime.strptime('18:00:00', '%H:%M:%S')
@@ -15,20 +14,6 @@ SIX_THIRTY = datetime.datetime.strptime('18:30:00', '%H:%M:%S')
 LOW_THRESHOLD = datetime.datetime.strptime('9:32:00', '%H:%M:%S')
 WORK_DAY = SIX_PM - MOT
 ONE_HOUR = MOT - NINE_AM
-cs_list = ['70692', '70610', '70625', '70697', '70629', '70684', '70612', '70675', '70677', '70672', '70654', '70614',
-           '70694', '70650', '70655', '70678', '70653', '70602', '70646', '70656', '70669', '70627', '70621', '70671',
-           '70676', '70652', '70605', '70674']
-morning_workers_list = ['70654', '70627']
-half_day_list = ['70627', '70694', '70671', '70654']
-sales_list = ['70683', '70682', '70616', '70611', '70607', '70680', '70689', '70673', '70670', '70679', '70662',
-              '70601', '70644', '70604', '70651', '70664', '70622', '70665', '70695', '70659', '70686', '70626',
-              '70609',
-              '70645', '70681', '70623', '70696', '70615', '70613', '70638']
-cs_dict = {'Abdel': '70692', 'Andre': '70625', 'Andreas': '70697', 'Bettina': '70684', 'Christine': '70612',
-           'Dolores': '70675', 'Fabian': '70677', 'Guilia': '70672', 'Jana': '70654', 'Karel': '70694', 'Leoni': '70655',
-           'Linda': '70653', 'Manuela': '70602', 'Marcel': '70646', 'Markus': '70656', 'Mathilde': '70669',
-           'Mats': '70627', 'Mia': '70621', 'Nathalie': '70671', 'Oliver': '70676', 'Otto': '70652', 'Silvia': '70605',
-           'Tony': '70674'}
 
 
 def sort_and_format():
@@ -43,16 +28,17 @@ def get_week_day(my_date):
     return calendar.day_name[my_date.weekday()]
 
 
-def time_change(x):
-    for i in range(2, 60):
-        try:
-            val = sheet.Cells(i, x).value
-            val = str(val)
-            val = val.split()
-            sheet.Cells(i, x).NumberFormat = "@"
-            sheet.Cells(i, x).value = val[1][0:8]
-        except:
-            break
+def time_change():
+    for k in range(3, 5):
+        for i in range(2, 60):
+            try:
+                val = sheet.Cells(i, k).value
+                val = str(val)
+                val = val.split()
+                sheet.Cells(i, k).NumberFormat = "@"
+                sheet.Cells(i, k).value = val[1][0:8]
+            except IndexError:
+                break
 
 
 def calculate_ot():
@@ -120,6 +106,7 @@ def calculate_late():
                 working_time = leave_time - arrive_time
                 if arrive_time > MOT:
                     m_late = arrive_time - MOT
+                    mia = m_late
                 if val in luckers:
                     sum_late = m_late
                 else:
@@ -133,6 +120,8 @@ def calculate_late():
                     e_late = e_late.split(':')                          
                     sum_late = datetime.timedelta(hours=int(m_late[0]), minutes=int(m_late[1]), seconds=int(m_late[2]))\
                              + datetime.timedelta(hours=int(e_late[0]), minutes=int(e_late[1]), seconds=int(e_late[2]))
+                    if day == 'Wednesday' and val == '70621':
+                        sum_late = mia
                 if str(sum_late) == '0:00:00' or sum_late > WORK_DAY or working_time >= WORK_DAY:
                     pass                
                 else:
@@ -140,30 +129,32 @@ def calculate_late():
 
 
 def delete_sales():
-    for k in reversed(range(60)):
+    k = 60
+    while k > 1:
         val = sheet.Cells(k, 1).value
         if val in sales_list:
             sheet.Rows(k).EntireRow.Delete()
+        k -= 1
 
 
-xlsx_files = glob.glob('*.xlsx')
-
-if len(xlsx_files) == 0:
-    raise RuntimeError('No XLSX files to convert.')
-xlApp = win32com.client.Dispatch("Excel.Application")
-for file in xlsx_files:
-    xlWb = xlApp.Workbooks.Open(os.path.join(os.getcwd(), file))
-    xlApp.Workbooks.Application.DisplayAlerts = False
-    sheet = xlApp.ActiveSheet
-    sort_and_format()
-    time_change(C)
-    time_change(D)
-    calculate_ot()
-    calculate_late()
-    delete_sales()
-    xlApp.Save()
-    print('editing %s complete' % file)
-
-xlApp.Quit()
-time.sleep(2)
-xlApp = None         
+def execute_():
+    global xlWb
+    global sheet
+    global xlApp
+    global file
+    xlsx_files = glob.glob('*.xlsx')
+    xlApp = win32com.client.Dispatch("Excel.Application")
+    for file in xlsx_files:
+        xlWb = xlApp.Workbooks.Open(os.path.join(os.getcwd(), file))
+        xlApp.Workbooks.Application.DisplayAlerts = False
+        sheet = xlApp.ActiveSheet
+        sort_and_format()
+        time_change()
+        calculate_ot()
+        calculate_late()
+        delete_sales()
+        xlApp.Save()
+        print('editing %s complete' % file)
+    xlApp.Quit()
+    time.sleep(2)
+    xlApp = None
