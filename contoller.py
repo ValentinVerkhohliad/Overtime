@@ -2,11 +2,15 @@ import gmail
 import ot
 import make_report
 import lists
+import config
+
+
 Actions = {
-    '1': gmail.exec_,
+    '1': gmail.execute_,
     '2': ot.execute_,
-    '3': make_report.execut_,
-    '4': lists.execute,
+    '3': make_report.execute_,
+    '4': lists.execute_,
+    '5': config.change_paths
 }
 while True:
     print('''Choose action
@@ -15,10 +19,10 @@ while True:
     3 for make final report
     4 for editing workers lists
     5 for exit''')
-    action = input('!')
+    action = input('?')
     try:
         if action == '5':
             break
         Actions.get(action)()
-    except:
+    except KeyError:
         print('Incorrect Action')

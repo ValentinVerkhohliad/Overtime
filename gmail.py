@@ -60,8 +60,7 @@ def ListMessagesWithLabels(service, user_id, label_ids=[]):
         print('An error occurred: %s' % error)
 
 
-def GetAttachments(service, user_id, msg_id, prefix=""):
-    try:
+def GetAttachments(service, user_id, msg_id, prefix="C:\\reports\\logins\\"):
         message = service.users().messages().get(userId=user_id, id=msg_id).execute()
         for part in message['payload']['parts']:
             if part['filename']:
@@ -77,9 +76,7 @@ def GetAttachments(service, user_id, msg_id, prefix=""):
                     with open(path, 'wb') as f:
                         f.write(file_data)
                 if breakpoint in part['filename']:
-                    raise errors.HttpError
-    except errors.HttpError as error:
-        print('An error occurred: %s' % error)
+                    raise ZeroDivisionError
 
 
 credentials = get_credentials()
@@ -88,7 +85,7 @@ gmail_service = discovery.build('gmail', 'v1', http=http)
 labels = gmail_service.users().labels().list(userId='me').execute()
 
 
-def exec_():
+def execute_():
     global month
     global breakpoint
     month = '.' + input('please input month you need in xx format')
@@ -112,3 +109,6 @@ def exec_():
                 print("No attachment in message ", m_id)
             else:
                 print("Something wrong in message ", m_id, e)
+        except ZeroDivisionError:
+            print('All is done')
+            break

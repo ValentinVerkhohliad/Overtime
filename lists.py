@@ -1,7 +1,7 @@
 import json
 
 
-def execute():
+def execute_():
     while True:
         print('''Choose action
         1 for editing global cs worker list(only CCA id's),
@@ -13,10 +13,22 @@ def execute():
         action = input('?')
         try:
             if action == '6':
+                save()
                 break
             actions.get(action)()
-        except:
+        except KeyError:
             print('Incorrect Action')
+        except ValueError as e:
+            print(e)
+
+
+def action_(fn):
+    def dec():
+        res = fn(action=input('Please, choose action \n1. Add worker to  list\n2.Delete worker from list \n3.'
+                              ' Print list\n'
+                              ))
+        return res
+    return dec
 
 
 def load():
@@ -38,9 +50,9 @@ cs_list, morning_workers_list, half_day_list, sales_list, cs_dict = (variables_l
                                                                      variables_list[4])
 
 
-def cs_list_edit():
+@action_
+def cs_list_edit(action):
     global cs_list
-    action = input('Please, choose action\n1.Add worker to CS list\n2.Delete worker from CS list\n3.Print list\n')
     if action == '1':
         cs_list.append(input('Please input worker CCA id'))
     elif action == '2':
@@ -52,9 +64,9 @@ def cs_list_edit():
         print(cs_list)
 
 
-def morning_workers_list_edit():
+@action_
+def morning_workers_list_edit(action):
     global morning_workers_list
-    action = input('Please, choose action \n1. Add worker to  list\n2.Delete worker from list \n3. Print list')
     if action == '1':
         morning_workers_list.append(input('Please input worker CCA id'))
     elif action == '2':
@@ -66,9 +78,9 @@ def morning_workers_list_edit():
         print(morning_workers_list)
 
 
-def half_day_list_edit():
+@action_
+def half_day_list_edit(action):
     global half_day_list
-    action = input('Please, choose action \n1. Add worker to  list \n2.Delete worker from list \n3. Print list')
     if action == '1':
         half_day_list.append(input('Please input worker CCA id'))
     elif action == '2':
@@ -80,9 +92,9 @@ def half_day_list_edit():
         print(half_day_list)
 
 
-def sales_list_edit():
+@action_
+def sales_list_edit(action):
     global sales_list
-    action = input('Please, choose action \n1. Add worker to  list \n2.Delete worker from list \n3. Print list')
     if action == '1':
         sales_list.append(input('Please input worker CCA id'))
     elif action == '2':
@@ -97,7 +109,7 @@ def sales_list_edit():
 def cs_dict_edit():
     global cs_dict
     action = input('Please, choose action \n 1.Update workers name \n 2.Add new worker to  list \n '
-                   '3.Delete worker from list \n 4.Print list')
+                   '3.Delete worker from list \n 4.Print list\n')
     if action == '1':
         cs_dict[input('Input new worker name')] = cs_dict.pop(input('Input old worker name to replace'))
     if action == '2':

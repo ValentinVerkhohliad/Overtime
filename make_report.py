@@ -6,42 +6,34 @@ import datetime
 import calendar
 
 
-def get_week_day(my_date):
-    return calendar.day_name[my_date.weekday()]
+def get_day():
+    global day
+    my_date = datetime.datetime.strptime(file[18:28], '%d.%m.%Y')
+    day = calendar.day_name[my_date.weekday()]
 
 
-def adjust_time(x):
-    try:
-        hours, minutes, sec = x.split(':')
-        sec = ':00'
-        if int(hours) == 0:
-            if 25 <= int(minutes) <= 50:
-                minutes = ':30'
-            elif int(minutes) < 25:
-                minutes = ':00'
-            elif int(minutes) > 50:
-                minutes = ':00'
-                h = int(hours) + 1
-                hours = str(h)
-        else:
-            hours += ':'
-        return hours + minutes + sec
-    except:
-        pass
+def get_late_start_row():
+    for i in range(20, 40):
+        if report.Sheets(1).Cells(i, 1).value == '70697':
+            return i
+        elif i == 40:
+            print('Please change start point for late row')
 
 
 def ot():
     """create workers dict and their ot"""
     global sheet
     sot = {}
-    for i in range(2, 25):
+    i = 2
+    val = sheet.Cells(i, 1).value
+    while val != None:
         val = sheet.Cells(i, 1).value
         tot = sheet.Cells(i, 5).value
-        try:
-            tot = adjust_time(tot)
-        except AttributeError:
+        if tot == None:
             pass
-        sot[val] = tot
+        else:
+            sot[val] = tot
+        i += 1
     return sot
 
 
@@ -49,87 +41,78 @@ def late():
     """create workers dict and their late time"""
     global sheet
     dic = {}
-    for i in range(2, 25):
+    i = 2
+    val = sheet.Cells(i, 1).value
+    while val != None:
         val = sheet.Cells(i, 1).value
         lat = sheet.Cells(i, 6).value
-        dic[val] = lat
+        if lat == None:
+            pass
+        else:
+            dic[val] = lat
+        i += 1
     return dic
 
 
-def get_col():
-    """create column dictionary"""
-    col_dict = {}
-    for i in range(3, 34):
-        column_ = report.Sheets(1).Cells(1, i).value
-        column_ = str(column_).split()
-        column_ = column_[0].split('-')
-        column_ = str(column_[2])
-        col_dict[column_] = i
-    return col_dict
+def get_date():
+    return int(file.lstrip('MastersDailyLogins').split('.')[0])
 
 
 def copy_ot():
     global report
     worker_list = ot()
-    date = file.split('.')
-    date = str(date[0].lstrip('MastersDailyLogins'))
-    my_date = datetime.datetime.strptime(file[18:28], '%d.%m.%Y')
-    day = get_week_day(my_date)
     if day == 'Sunday':
         pass
     else:
-        if date in column:
-            col = column[date]
-            for i in range(2, 25):
-                try:
-                    row = report.Sheets(1).Cells(i, 1).value
-                    report.Sheets(1).Cells(i, col).value = worker_list[row]
-                except KeyError:
-                    print('Somebody is absent today')
-        print('copy ot in %s complete' % file)
-        report.Save()
+        i = 2
+        row = report.Sheets(1).Cells(i, 1).value
+        while row != None:
+            try:
+                row = report.Sheets(1).Cells(i, 1).value
+                report.Sheets(1).Cells(i, get_date()+2).value = worker_list[row]
+            except KeyError:
+                pass
+            i += 1
+    print('copy ot in %s complete' % file)
 
 
 def copy_late():
     global report
-    my_date = datetime.datetime.strptime(file[18:28], '%d.%m.%Y')
-    day = get_week_day(my_date)
     if day == 'Saturday' or day == 'Sunday':
         pass
     else:
         worker_list = late()
-        date = file.split('.')
-        date = str(date[0].lstrip('MastersDailyLogins'))
-        if date in column:
-            col = column[date]
-            for i in range(32, 55):
-                try:
-                    row = report.Sheets(1).Cells(i, 1).value
-                    report.Sheets(1).Cells(i, col).value = worker_list[row]
-                except KeyError:
-                    pass
+        i = late_start_point
+        row = report.Sheets(1).Cells(i, 1).value
+        while row != None:
+            try:
+                row = report.Sheets(1).Cells(i, 1).value
+                report.Sheets(1).Cells(i, get_date() + 2).value = worker_list[row]
+            except KeyError:
+                pass
+            i += 1
         print('copy late in %s complete' % file)
-        report.Save()
 
 
-def execut_():
+def execute_():
     global report
     global column
     global file
     global sheet
     global xlWb
     global xlApp
-    xlsx_files = glob.glob('*.xlsx')
+    global late_start_point
+    xlsx_files = glob.glob1('C:\\reports\\logins\\', '*.xlsx')
     if len(xlsx_files) == 0:
         raise RuntimeError('No XLSX files to convert.')
     xlApp = win32com.client.Dispatch("Excel.Application")
-    report = xlApp.Workbooks.Open('C:\\reports\\reports\\Ot.xlsx')
-    column = get_col()
-
+    report = xlApp.Workbooks.Open(r'C:\reports\reports\Ot.xlsx')
+    late_start_point = get_late_start_row()
     for file in xlsx_files:
-        xlWb = xlApp.Workbooks.Open(os.path.join(os.getcwd(), file))
+        xlWb = xlApp.Workbooks.Open(os.path.join('C:\\reports\\logins\\', file))
         xlApp.Workbooks.Application.DisplayAlerts = False
         sheet = xlApp.ActiveSheet
+        get_day()
         copy_ot()
         copy_late()
         xlApp.Save()
