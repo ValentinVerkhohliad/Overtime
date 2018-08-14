@@ -61,6 +61,7 @@ def luckers_list():
                 luckers.append(cs_dict[worker])
         except KeyError:
             print('Wrong name')
+    return luckers
 
 
 def calculate_ot():
@@ -72,38 +73,35 @@ def calculate_ot():
         if val in cs_list:
             arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
             leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
-            if day == 'Sunday':
-                pass
+            if day == 'Saturday':
+                sum_ot = leave_time - arrive_time
+                sheet.Cells(i, 5).value = str(sum_ot)
             else:
-                if day == 'Saturday':
-                    sum_ot = leave_time - arrive_time
-                    sheet.Cells(i, 5).value = str(sum_ot)
+                if NINE_AM > arrive_time:
+                    arrive_time = NINE_AM
+                if val in luckers or leave_time == '00:00:00':
+                    leave_time = SIX_PM
+                working_time = leave_time - arrive_time
+                if val in half_day_list:
+                    if (working_time - HALF_DAY) > HALF_HOUR:
+                        sum_ot = working_time - HALF_DAY
+                        sheet.Cells(i, 5).value = str(sum_ot)
                 else:
-                    if NINE_AM > arrive_time:
-                        arrive_time = NINE_AM
-                    if val in luckers or leave_time == '00:00:00':
-                        leave_time = SIX_PM
-                    working_time = leave_time - arrive_time
-                    if val in half_day_list:
-                        if (working_time - HALF_DAY) > HALF_HOUR:
-                            sum_ot = working_time - HALF_DAY
-                            sheet.Cells(i, 5).value = str(sum_ot)
+                    if working_time < OT_DAY:
+                        pass
                     else:
-                        if working_time < OT_DAY:
-                            pass
+                        if (working_time - WORK_DAY) > ONE_HOUR:
+                            sum_ot = working_time - WORK_DAY
                         else:
-                            if (working_time - WORK_DAY) > ONE_HOUR:
-                                sum_ot = working_time - WORK_DAY
-                            else:
-                                if (MOT - arrive_time) > HALF_HOUR or (leave_time - SIX_PM) > HALF_HOUR:
-                                    sum_ot = HALF_HOUR
-                            sheet.Cells(i, 5).value = str(sum_ot)
+                            if (MOT - arrive_time) > HALF_HOUR or (leave_time - SIX_PM) > HALF_HOUR:
+                                sum_ot = HALF_HOUR
+                        sheet.Cells(i, 5).value = str(sum_ot)
         i += 1
 
 
 def calculate_late():
     global file
-    if day == 'Saturday' or day == 'Sunday':
+    if day == 'Saturday':
         pass
     else:
         i = 2
@@ -118,8 +116,6 @@ def calculate_late():
                     leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
                     if val in luckers:
                         leave_time = SIX_PM
-                    if NINE_AM > arrive_time:
-                        arrive_time = NINE_AM
                     working_time = leave_time - arrive_time
                     if val in half_day_list:
                         if (day == 'Thursday' or day == 'Friday') and val == '70694':
@@ -160,10 +156,13 @@ def execute_():
         sort_and_format()
         time_change()
         get_day()
-        luckers_list()
-        calculate_ot()
-        calculate_late()
-        delete_sales()
+        if day == 'Sunday':
+            pass
+        else:
+            luckers_list()
+            calculate_ot()
+            calculate_late()
+            delete_sales()
         xlApp.Save()
         print('editing %s complete' % file)
     xlApp.Quit()

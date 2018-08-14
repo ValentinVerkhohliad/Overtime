@@ -96,7 +96,6 @@ def copy_late():
 
 def execute_():
     global report
-    global column
     global file
     global sheet
     global xlWb
@@ -116,7 +115,6 @@ def execute_():
         copy_ot()
         copy_late()
         xlApp.Save()
-
     xlApp.Quit()
     time.sleep(2)
     xlApp = None
