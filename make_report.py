@@ -5,6 +5,8 @@ import os
 import datetime
 import calendar
 
+errors = ''
+
 
 def get_day():
     global day
@@ -13,11 +15,12 @@ def get_day():
 
 
 def get_late_start_row():
+    global errors
     for i in range(20, 40):
         if report.Sheets(1).Cells(i, 1).value == '70697':
             return i
         elif i == 40:
-            print('Please change start point for late row')
+            errors = errors + 'Please change start point for late row'
 
 
 def ot():
@@ -73,7 +76,6 @@ def copy_ot():
             except KeyError:
                 pass
             i += 1
-    print('copy ot in %s complete' % file)
 
 
 def copy_late():
@@ -91,7 +93,6 @@ def copy_late():
             except KeyError:
                 pass
             i += 1
-        print('copy late in %s complete' % file)
 
 
 def execute_():
@@ -101,6 +102,7 @@ def execute_():
     global xlWb
     global xlApp
     global late_start_point
+    global errors
     xlsx_files = glob.glob1('C:\\reports\\logins\\', '*.xlsx')
     if len(xlsx_files) == 0:
         raise RuntimeError('No XLSX files to convert.')
@@ -115,6 +117,7 @@ def execute_():
         copy_ot()
         copy_late()
         xlApp.Save()
+        errors = errors + ('editing %s complete' % file + '\n')
     xlApp.Quit()
     time.sleep(2)
     xlApp = None

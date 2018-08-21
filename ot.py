@@ -7,6 +7,7 @@ import calendar
 import win32com.client
 from lists import cs_list, half_day_list, sales_list, cs_dict
 
+errors = ''
 NINE_AM = datetime.datetime.strptime('9:00:00', '%H:%M:%S')
 TWO_FIFTEEN = datetime.datetime.strptime('14:15:00', '%H:%M:%S')
 FALSE_HOUR = datetime.datetime.strptime('9:08:00', '%H:%M:%S')
@@ -21,6 +22,7 @@ HALF_DAY = TWO_FIFTEEN - MOT
 TWO_HOUR = TWELVE - MOT
 ONE_HOUR = MOT - FALSE_HOUR
 HALF_HOUR = MOT - LOW_THRESHOLD
+friday_count = 0
 
 
 def sort_and_format():
@@ -50,17 +52,19 @@ def get_day():
     day = calendar.day_name[my_date.weekday()]
 
 
-def luckers_list():
+def luckers_list(lucky_people):
     global luckers
+    global friday_count
+    global errors
     luckers = []
     if day == 'Friday':
-        lucky_people = input('Please input lucky people at %s. For example (Abdel,Andre,Andreas)' % file)
-        lucky_people = lucky_people.split(',')
         try:
-            for worker in lucky_people:
+            for worker in lucky_people[friday_count]:
                 luckers.append(cs_dict[worker])
+                friday_count += 1
         except KeyError:
-            print('Wrong name')
+            errors = errors + 'Wrong name in luckers or field is empty\n'
+            friday_count += 1
     return luckers
 
 
@@ -142,11 +146,12 @@ def delete_sales():
         k -= 1
 
 
-def execute_():
+def execute_(lucky_people):
     global xlWb
     global sheet
     global xlApp
     global file
+    global errors
     xlsx_files = glob.glob1('C:\\reports\\logins\\', '*.xlsx')
     xlApp = win32com.client.Dispatch("Excel.Application")
     for file in xlsx_files:
@@ -159,12 +164,12 @@ def execute_():
         if day == 'Sunday':
             pass
         else:
-            luckers_list()
+            luckers_list(lucky_people)
             calculate_ot()
             calculate_late()
             delete_sales()
         xlApp.Save()
-        print('editing %s complete' % file)
+        errors = errors + ('editing %s complete' % file + '\n')
     xlApp.Quit()
     time.sleep(2)
     xlApp = None

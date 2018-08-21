@@ -6,6 +6,8 @@ import datetime
 import calendar
 from lists import cs_dict
 
+errors = ''
+
 
 def get_day():
     global day
@@ -70,6 +72,7 @@ def execute_():
     global xlWb
     global xlApp
     global apsend_people_list
+    global errors
     xlsx_files = glob.glob1('C:\\reports\\logins\\', '*.xlsx')
     if len(xlsx_files) == 0:
         raise RuntimeError('No XLSX files to convert.')
@@ -85,7 +88,7 @@ def execute_():
         else:
             apsend_people_list = get_apsend_people_list()
             fill_visit_in_file()
-        print('editing %s complete' % file)
+        errors = errors + ('editing %s complete' % file + '\n')
         xlApp.Save()
     xlApp.Quit()
     time.sleep(2)

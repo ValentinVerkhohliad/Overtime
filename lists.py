@@ -1,7 +1,9 @@
 import json
+errors = ''
 
 
 def execute_():
+    global errors
     while True:
         print('''Choose action
         1 for editing global cs worker list(only CCA id's),
@@ -17,7 +19,7 @@ def execute_():
                 break
             actions.get(action)()
         except KeyError:
-            print('Incorrect Action')
+            errors = errors + 'Incorrect Action'
         except ValueError as e:
             print(e)
 
@@ -44,80 +46,79 @@ def save():
         json.dump(variables_list, f)
 
 
-variables_list = load()
-cs_list, morning_workers_list, half_day_list, sales_list, cs_dict = (variables_list[0], variables_list[1],
-                                                                     variables_list[2], variables_list[3],
-                                                                     variables_list[4])
-
-
-@action_
-def cs_list_edit(action):
+def cs_list_edit(action, cca_number):
     global cs_list
+    global errors
     if action == '1':
-        cs_list.append(input('Please input worker CCA id'))
+        cs_list.append(cca_number)
     elif action == '2':
         try:
-            cs_list.remove(input('Please input worker CCA id'))
+            cs_list.remove(cca_number)
         except ValueError:
-            raise ValueError('Worker is not in a list')
+            errors = errors + 'Worker is not in a list\n'
     elif action == '3':
-        print(cs_list)
+        return cs_list
 
 
 @action_
 def morning_workers_list_edit(action):
     global morning_workers_list
+    global errors
     if action == '1':
         morning_workers_list.append(input('Please input worker CCA id'))
     elif action == '2':
         try:
             morning_workers_list.remove(input('Please input worker CCA id'))
         except ValueError:
-            raise ValueError('Worker is not in a list')
+            errors = errors + 'Worker is not in a list\n'
     elif action == '3':
         print(morning_workers_list)
 
 
-@action_
-def half_day_list_edit(action):
+def half_day_list_edit(action, cca_number):
     global half_day_list
+    global errors
     if action == '1':
-        half_day_list.append(input('Please input worker CCA id'))
+        half_day_list.append(cca_number)
     elif action == '2':
         try:
-            half_day_list.remove(input('Please input worker CCA id'))
+            half_day_list.remove(cca_number)
         except ValueError:
-            raise ValueError('Worker is not in a list')
+            errors = errors + 'Worker is not in a list\n'
     elif action == '3':
-        print(half_day_list)
+        return half_day_list
 
 
-@action_
-def sales_list_edit(action):
+def sales_list_edit(action, cca_number):
     global sales_list
+    global errors
     if action == '1':
-        sales_list.append(input('Please input worker CCA id'))
+        sales_list.append(cca_number)
     elif action == '2':
         try:
-            sales_list.remove(input('Please input worker CCA id'))
+            sales_list.remove(cca_number)
         except ValueError:
-            raise ValueError('Worker is not in a list')
+            errors = errors + 'Worker is not in a list\n'
     elif action == '3':
-        print(sales_list)
+        return sales_list
 
 
-def cs_dict_edit():
+def cs_dict_edit(action, name, cca_number):
     global cs_dict
-    action = input('Please, choose action \n 1.Update workers name \n 2.Add new worker to  list \n '
-                   '3.Delete worker from list \n 4.Print list\n')
-    if action == '1':
-        cs_dict[input('Input new worker name')] = cs_dict.pop(input('Input old worker name to replace'))
-    if action == '2':
-        cs_dict[input('Input name of the new worker')] = input('Input CCA id of the new worker')
-    if action == '3':
-        del cs_dict[input('Input name of the worker')]
-    elif action == '4':
-        print(cs_dict)
+    global errors
+    try:
+        if action == '1':
+            cs_dict[name] = cs_dict.pop(cca_number)
+        if action == '2':
+            cs_dict[name] = cca_number
+        if action == '3':
+            del cs_dict[name]
+        elif action == '4':
+            return cs_dict
+    except KeyError:
+        errors = errors + 'Worker is not in a list\n'
+    except TypeError:
+        errors = errors + 'Check the spelling\n'
 
 
 actions = {
@@ -127,3 +128,8 @@ actions = {
     '4': sales_list_edit,
     '5': cs_dict_edit,
 }
+
+variables_list = load()
+cs_list, morning_workers_list, half_day_list, sales_list, cs_dict = (variables_list[0], variables_list[1],
+                                                                     variables_list[2], variables_list[3],
+                                                                     variables_list[4])
