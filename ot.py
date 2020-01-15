@@ -22,7 +22,6 @@ HALF_DAY = TWO_FIFTEEN - MOT
 TWO_HOUR = TWELVE - MOT
 ONE_HOUR = MOT - FALSE_HOUR
 HALF_HOUR = MOT - LOW_THRESHOLD
-friday_count = 0
 
 
 def sort_and_format():
@@ -54,30 +53,34 @@ def get_day():
 
 def luckers_list(lucky_people):
     global luckers
-    global friday_count
     global errors
     luckers = []
+    friday_count = 0
     if day == 'Friday':
         try:
             for worker in lucky_people[friday_count]:
                 luckers.append(cs_dict[worker])
                 friday_count += 1
-        except KeyError:
-            errors = errors + 'Wrong name in luckers or field is empty\n'
-            friday_count += 1
+        except :
+            if lucky_people[friday_count][0] == '':
+                pass
+            else:
+                errors = errors + 'Wrong name in luckers\n'
+                friday_count += 1
     return luckers
 
 
 def calculate_ot():
     global file
     i = 2
+    sum_ot = '00:00:00'
     val = sheet.Cells(i, 1).value
     while val != None:
         val = sheet.Cells(i, 1).value
         if val in cs_list:
             arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
             leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
-            if day == 'Saturday':
+            if day == 'Sunday':
                 sum_ot = leave_time - arrive_time
                 sheet.Cells(i, 5).value = str(sum_ot)
             else:
@@ -105,7 +108,7 @@ def calculate_ot():
 
 def calculate_late():
     global file
-    if day == 'Saturday':
+    if day == 'Sunday':
         pass
     else:
         i = 2
@@ -113,26 +116,23 @@ def calculate_late():
         while val != None:
             val = sheet.Cells(i, 1).value
             if val in cs_list:
-                if val == '70692':
-                    pass
+                arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
+                leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
+                if arrive_time < NINE_AM:
+                    arrive_time = NINE_AM
+                if val in luckers:
+                    leave_time = SIX_PM
+                working_time = leave_time - arrive_time
+                if val in half_day_list:
+                    if working_time < HALF_DAY:
+                        sum_late = HALF_DAY - working_time
+                        sheet.Cells(i, 6).value = str(sum_late)
                 else:
-                    arrive_time = datetime.datetime.strptime(sheet.Cells(i, 3).value, '%H:%M:%S')
-                    leave_time = datetime.datetime.strptime(sheet.Cells(i, 4).value, '%H:%M:%S')
-                    if val in luckers:
-                        leave_time = SIX_PM
-                    working_time = leave_time - arrive_time
-                    if val in half_day_list:
-                        if (day == 'Thursday' or day == 'Friday') and val == '70694':
-                            if working_time < TWO_HOUR:
-                                sum_late = TWO_HOUR - working_time
-                                sheet.Cells(i, 6).value = str(sum_late)
+                    if working_time < WORK_DAY:
+                        sum_late = WORK_DAY - working_time
+                        if sum_late > WORK_DAY:
+                            pass
                         else:
-                            if working_time < HALF_DAY:
-                                sum_late = HALF_DAY - working_time
-                                sheet.Cells(i, 6).value = str(sum_late)
-                    else:
-                        if working_time < WORK_DAY:
-                            sum_late = WORK_DAY - working_time
                             sheet.Cells(i, 6).value = str(sum_late)
             i += 1
 
@@ -161,7 +161,7 @@ def execute_(lucky_people):
         sort_and_format()
         time_change()
         get_day()
-        if day == 'Sunday':
+        if day == 'Saturday':
             pass
         else:
             luckers_list(lucky_people)
@@ -171,5 +171,3 @@ def execute_(lucky_people):
         xlApp.Save()
         errors = errors + ('editing %s complete' % file + '\n')
     xlApp.Quit()
-    time.sleep(2)
-    xlApp = None

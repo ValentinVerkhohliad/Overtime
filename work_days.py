@@ -4,7 +4,7 @@ import glob
 import os
 import datetime
 import calendar
-from lists import cs_dict
+from lists import cs_dict, half_day_list
 
 errors = ''
 
@@ -53,15 +53,12 @@ def fill_visit_in_file():
     val = work_days.Sheets(1).Cells(i, 1).value
     while val != 'Billy':
         val = work_days.Sheets(1).Cells(i, 1).value
-        if (day == 'Thursday' or day == 'Friday') and val == 'Karel':
-            work_days.Sheets(1).Cells(i, get_date() + 1).value = 0.25
+        if cs_dict[val] in half_day_list:
+            work_days.Sheets(1).Cells(i, get_date() + 1).value = 0.5
         else:
-            if val == 'Karel' or val == 'Mats' or val == 'Zoe':
-                work_days.Sheets(1).Cells(i, get_date() + 1).value = 0.5
-            else:
-                work_days.Sheets(1).Cells(i, get_date() + 1).value = 1
-            if val in apsend_people_list:
-                work_days.Sheets(1).Cells(i, get_date() + 1).value = 0
+            work_days.Sheets(1).Cells(i, get_date() + 1).value = 1
+        if val in apsend_people_list:
+            work_days.Sheets(1).Cells(i, get_date() + 1).value = 0
         i += 1
 
 

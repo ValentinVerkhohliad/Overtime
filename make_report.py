@@ -64,7 +64,7 @@ def get_date():
 def copy_ot():
     global report
     worker_list = ot()
-    if day == 'Sunday':
+    if day == 'Saturday':
         pass
     else:
         i = 2

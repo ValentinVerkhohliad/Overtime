@@ -7,11 +7,16 @@ import make_report
 import work_days
 import backup
 import lists
+import daily
+import Excel_exit
+import prepare_files_for_new_month
+import make_daily_report
 import collections
 from PyQt5 import QtWidgets
 
-month_dict = {'January': '01', 'February': '02', 'March': '03', 'April': '04', 'May': '05', 'June': '06', 'July': '07',
-              'August': '08', 'September': '09', 'October': '10', 'November': '11', 'December': '12'}
+month_dict = {'January': '.01', 'February': '.02', 'March': '.03', 'April': '.04', 'May': '.05', 'June': '.06',
+              'July': '.07', 'August': '.08', 'September': '.09', 'October': '.10', 'November': '.11',
+              'December': '.12'}
 
 
 class MyWin(QtWidgets.QMainWindow):
@@ -19,11 +24,15 @@ class MyWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.month = ''
+        self.month = '01'
+        self.label_type = 'py-cw1'
+        self.prefix = "C:\\reports\\logins\\"
         self.ui.pushButton.clicked.connect(self.gmail_download)
         self.ui.comboBox.addItems(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
                                    'September', 'October', 'November', 'December'])
+        self.ui.comboBox_1.addItems(['Ot Logins', 'Daily'])
         self.ui.comboBox.activated[str].connect(self.month_selection)
+        self.ui.comboBox_1.activated[str].connect(self.report_type_selection)
         self.ui.pushButton_2.clicked.connect(self.calculate_ot)
         self.ui.pushButton_3.clicked.connect(self.make_report_exec)
         self.ui.pushButton_4.clicked.connect(self.make_attendance)
@@ -42,9 +51,13 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.pushButton_17.clicked.connect(self.delete_from_cs_dict)
         self.ui.pushButton_18.clicked.connect(self.print_cs_dict)
         self.ui.pushButton_19.clicked.connect(self.save_lists)
+        self.ui.pushButton_20.clicked.connect(self.prepare_daily_files)
+        self.ui.pushButton_21.clicked.connect(self.make_daily_report_function)
+        self.ui.pushButton_22.clicked.connect(self.prepare_reports)
+        self.ui.pushButton_23.clicked.connect(self.kill_excel)
 
     def gmail_download(self):
-        gmail.execute_(self.month)
+        gmail.execute_(self.month, self.label_type, self.prefix)
         self.ui.textBrowser.clear()
         self.ui.textBrowser.insertPlainText(gmail.errors)
         self.ui.textBrowser.insertPlainText('Download complete \n')
@@ -53,17 +66,39 @@ class MyWin(QtWidgets.QMainWindow):
     def month_selection(self, text):
         self.month = month_dict[text]
 
+    def report_type_selection(self, text):
+        if text == 'Ot Logins':
+            self.label_type = 'py-cw1'
+            self.prefix = "C:\\reports\\logins\\"
+        elif text == 'Daily':
+            self.label_type = 'py-cw2'
+            self.prefix = "C:\\reports\\dailyreports\\"
+
+    def prepare_daily_files(self):
+        daily.execute_()
+        self.ui.textBrowser.clear()
+        self.ui.textBrowser.insertPlainText(daily.errors)
+        self.ui.textBrowser.insertPlainText('Daily files prepared \n')
+
+    def make_daily_report_function(self):
+        make_daily_report.execute_()
+        self.ui.textBrowser.clear()
+        if make_daily_report.error != '':
+            self.ui.textBrowser.insertPlainText(make_daily_report.error)
+        else:
+            self.ui.textBrowser.insertPlainText('Daily report is ready \n')
+
     def calculate_ot(self):
         lucky_people = []
         lucky_people.append(self.ui.lineEdit.text().split(','))
         lucky_people.append(self.ui.lineEdit_2.text().split(','))
         lucky_people.append(self.ui.lineEdit_3.text().split(','))
         lucky_people.append(self.ui.lineEdit_4.text().split(','))
+        lucky_people.append(self.ui.lineEdit_14.text().split(','))
         ot.execute_(lucky_people)
         self.ui.textBrowser.clear()
         self.ui.textBrowser.insertPlainText(ot.errors)
         self.ui.textBrowser.insertPlainText('Calculation Ot complete \n')
-        ot.errors = ''
 
     def make_report_exec(self):
         make_report.execute_()
@@ -79,10 +114,27 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.textBrowser.insertPlainText('Attendance reropt is Done \n')
         work_days.errors = ''
 
+    def prepare_reports(self):
+        prepare_files_for_new_month.execute_()
+        if prepare_files_for_new_month.errors == '':
+            self.ui.textBrowser.clear()
+            self.ui.textBrowser.insertPlainText('All reports are ready for use. Enjoy\n')
+            self.ui.textBrowser.insertPlainText(prepare_files_for_new_month.errors)
+        else:
+            self.ui.textBrowser.insertPlainText(prepare_files_for_new_month.errors)
+
     def make_backup(self):
         backup.execute_()
-        self.ui.textBrowser.clear()
-        self.ui.textBrowser.insertPlainText('Backup is Done \n')
+        if backup.backup_error == '':
+            self.ui.textBrowser.clear()
+            self.ui.textBrowser.insertPlainText('Backup is Done \n')
+            self.ui.textBrowser.insertPlainText(backup.backup_error)
+        else:
+            self.ui.textBrowser.insertPlainText(backup.backup_error)
+
+    def kill_excel(self):
+        Excel_exit.execute_()
+        self.ui.textBrowser.insertPlainText('Excel is dead\n')
 
     def add_to_CCA_cs_list(self):
         if len(str(self.ui.lineEdit_5.text())) > 0:

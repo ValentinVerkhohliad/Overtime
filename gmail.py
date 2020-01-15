@@ -2,10 +2,8 @@
 from __future__ import print_function
 import httplib2
 import os
-import threading
 
 import base64
-from apiclient import errors
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -62,7 +60,7 @@ def ListMessagesWithLabels(service, user_id, label_ids=[]):
         errors = errors + ('An error occurred: %s' % error + '\n')
 
 
-def GetAttachments(month, breakpoint, service, user_id, msg_id, prefix="C:\\reports\\logins\\"):
+def GetAttachments(month, breakpoint, service, user_id, msg_id, prefix):
     global errors
     message = service.users().messages().get(userId=user_id, id=msg_id).execute()
     for part in message['payload']['parts']:
@@ -71,7 +69,7 @@ def GetAttachments(month, breakpoint, service, user_id, msg_id, prefix="C:\\repo
                 data = part['body']['data']
             else:
                 att_id = part['body']['attachmentId']
-                att = gmail_service.users().messages().attachments().get(userId=user_id, messageId=msg_id,id=att_id).execute()
+                att = gmail_service.users().messages().attachments().get(userId=user_id, messageId=msg_id, id=att_id).execute()
                 data = att['data']
             if month in part['filename']:
                 file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
@@ -88,7 +86,7 @@ gmail_service = discovery.build('gmail', 'v1', http=http)
 labels = gmail_service.users().labels().list(userId='me').execute()
 
 
-def execute_(month):
+def execute_(month, label_type, prefix):
     global errors
     try:
         if int(month.lstrip('.')) == 1:
@@ -98,13 +96,13 @@ def execute_(month):
         else:
             breakpoint = '.' + str((int(month.lstrip('.')) - 1))
         for label in labels['labels']:
-            if label['name'] == 'py-cw1':
+            if label['name'] == label_type:
                 py_cw1_label = label['id']
         messages = ListMessagesWithLabels(gmail_service, 'me', py_cw1_label)
         for msg in messages:
             m_id = msg['id']
             try:
-                GetAttachments(month, breakpoint, gmail_service, 'me', m_id)
+                GetAttachments(month, breakpoint, gmail_service, 'me', m_id, prefix)
             except KeyError as e:
                 if 'parts' in str(e):
                     errors = errors + ("No attachment in message\n ", m_id + '\n')
